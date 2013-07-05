@@ -78,7 +78,7 @@
 
 -(void)checkUpdate
 {
-    NSString* result = [RequestSender sendRequest:@"http://api.4321.la/analytics-maclyrics.php?ver=20120701"];
+    NSString* result = [RequestSender sendRequest:@"http://martianlaboratory.com/analytics/dynamiclyrics/20130703"];
     
     if ([result isEqualToString:@"Update"])
     {
@@ -313,7 +313,13 @@
     //This thread now will only handle the playing position and will no longer handle either the song name or the lyrics
     
     iTunesApplication *iTunes = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
+    NewiTunesApplication *iTunesNEW = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
+    OldiTunesApplication *iTunesOLD = [SBApplication applicationWithBundleIdentifier:@"com.apple.iTunes"];
+    //Dirty code QAQ
 
+    NSDictionary *iTunesVersionDictionary = [NSDictionary dictionaryWithContentsOfFile:@"/Applications/iTunes.app/Contents/version.plist"];
+    long long iTunesVersion = [[iTunesVersionDictionary objectForKey:@"SourceVersion"] longLongValue];
+    
     while (![iTunes isRunning])
     {
         //if iTunes is not running, we should wait for it rather than launch it
@@ -332,7 +338,15 @@
             //exit(0); //现在不通过Helper结束DynamicLyrics了，因为SandBox的缘故，我又懒得弄NSConnection，直接自己退出=。=
         }
         if ([iTunes isRunning] && [iTunes playerState] == iTunesEPlSPlaying) {
-            PlayerPosition = [iTunes playerPosition];
+            if (iTunesVersion >= 1103042001000000)
+            {
+                PlayerPosition = [iTunesNEW playerPosition];
+                
+            } else
+            {
+                PlayerPosition = [iTunesOLD playerPosition];
+            }
+            
             if ((currentPlayerPosition / 1000) != PlayerPosition)
                 currentPlayerPosition = PlayerPosition * 1000;
             
